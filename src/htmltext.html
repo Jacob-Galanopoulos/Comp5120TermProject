@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <script type="text/javascript">
+    var request_sql = function() {
+      document.getElementById("results_area").innerHTML = "";
+      let query_pre = document.getElementById("query_input").value;
+      query_pre = query_pre.replace(/;/gi, ";@");
+      let queryChunks = [];
+      if(!query_pre.includes("@")) {
+        query_pre += ";";
+        queryChunks = [query_pre];
+      }
+      else {
+        queryChunks = query_pre.split("@");
+      }
+
+      let allHTML = ""
+      queryChunks.forEach(query => {
+        //let query = 'query=' + document.getElementById("query_input").value;
+        let xhr = new XMLHttpRequest();
+
+        if(!query || query == ";") {
+          //do nothing
+        }
+        else if (query.includes("DROP")) {
+          //document.getElementById("results_area").innerHTML = getAlertMessage("ERROR: DROP operation not allowed.");
+          document.getElementById("results_area").innerHTML += getAlertMessage("ERROR: DROP operation not allowed.");
+        }
+        else {
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+              if (xhr.responseText.includes("ERROR:")) {
+                document.getElementById("results_area").innerHTML += (getPreviousQuery(query) + getAlertMessage(xhr.responseText));
+              }
+              else {
+                document.getElementById("results_area").innerHTML += (getPreviousQuery(query) + xhr.responseText);
+              }
+            }
+          }
+          xhr.open('POST', 'index.php', true);
+          xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+          xhr.send('query='+ query);
+        }
+      });
+    }
+      var predefinedQuery = function (el) {
+        //document.getElementById("query_input").value = "SELECT * FROM " + el.dataset.query + ";";
+        //document.getElementById("submit_sql_query").click();
+        document.getElementById("table-results").innerHTML = ""
+        let query = "SELECT * FROM " + el.dataset.query + ";";
+        let xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState == XMLHttpRequest.DONE) {
+            if (xhr.responseText.includes("ERROR:")) {
+              document.getElementById("table-results").innerHTML += (getPreviousQuery(query) + getAlertMessage(xhr.responseText));
+            }
+            else {
+              document.getElementById("table-results").innerHTML += xhr.responseText;
+            }
+          }
+        }
+        xhr.open('POST', 'index.php', true);
+        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhr.send('query=' + query);
+      }
+    var getAlertMessage = function(text) {return `<div class="alert alert-danger" role="alert">${text}</div>`;}
+    var getPreviousQuery = function(text) {return `<div id="previous_query">${text}</div>`;}
+  </script>
+
+  <style>
+    td,th {
+      padding: 0 10px;
+    }
+    #previous_query {
+      padding-top: 15px;
+    }
+  </style>
+
+  <div class="jumbotron text-center">
+    <h1>COMP 5120 - Database</h1>
+    <p>A database search created by Jake, Karl, and Kevin</p>
+  </div>
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-2">
+      </div>
+      <div class="col-sm-8">
+        <div class="card">
+          <div class="card-header">MySQL Interface</div>
+          <div class="card-body">
+            <div class="btn-group" role="group" aria-label="">
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_supplier">Supplier</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_subject">Subject</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_customer">Customer</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_shipper">Shipper</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_employee">Employee</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_book">Book</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_order">Order</button>
+              <button type="button" class="btn btn-secondary" onclick="predefinedQuery(this)" data-query="db_order_detail">Order Detail</button>
+            </div>
+
+            <div id="table-results">
+
+            </div>
+          
+            <div class="form-group">
+              <label for="input">SQL:</label>
+              <textarea id="query_input" class="form-control" rows="5" id="input"></textarea>
+            </div>
+          
+            <button type="button" id="submit_sql_query" class="btn" data-toggle="collapse" onclick="request_sql()" data-target="#demo">Click Here for
+              Results</button>
+          
+
+            <div id="results_area"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-2">
+    </div>
+  </div>
+  </div>
+
+  <script>
+    document.getElementById("result").innerHTML = "test";
+  </script>
+
+</body>
+
+</html>
